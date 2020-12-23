@@ -10,10 +10,11 @@ def load_model(load, model_path):
 
   if load:
     model = torchvision.models.resnet18(pretrained=True)
-    torch.save(model, model_path / 'resnet.pth')
+    torch.save(model.state_dict(), model_path / 'resnet.pth')
 
   else:
-    model = torch.load(model_path / 'resnet.pth')
+    model = torchvision.models.resnet18(pretrained=False)
+    model.load_state_dict(torch.load((model_path / 'resnet.pth').as_posix()))
 
   return model
 
@@ -31,25 +32,17 @@ def convert_torch_to_onnx(model, onnx_path):
     - onnx_path: pathlib.Path
   '''
   #generate random tensor to use
-  rand_tens = create_rand_tens()
+  rand_tens = torch.autograd.Variable(create_rand_tens())
   #get torch model output
   torch_out = model(rand_tens)
   torch.onnx.export(
     model=model,
     args=rand_tens,
     f=onnx_path / 'resnet.onnx',
-    verbose=False,
-    export_params=True,
-    do_constant_folding=False,
-    input_names=['input'],
-    output_names=['output'],
-    dynamic_axes={'input' : {0 : 'batch_size'},    # variable lenght axes
-                  'output' : {0 : 'batch_size'}}
   )
 
   onnx_model = onnx.load((onnx_path / 'resnet.onnx').as_posix())
   onnx.checker.check_model(onnx_model)
-
 
   ort_session = onnxruntime.InferenceSession((onnx_path / 'resnet.onnx').as_posix())
   ort_inputs = {ort_session.get_inputs()[0].name: to_numpy(rand_tens)}
@@ -62,16 +55,21 @@ def convert_torch_to_onnx(model, onnx_path):
 
   return None
 
-def convert_frozen_graph_to_tflite(tf_path, tflite_path):
-  converter = tf.lite.TFLiteConverter.from_frozen_graph(tf_path.as_posix(),
-                                                        input_arrays=['input'],
-                                                        output_arrays=['output']
-                                                      )
+def load_pb(path_to_pb):
+    with tf.gfile.GFile(path_to_pb, 'rb') as f:
+        graph_def = tf.GraphDef()
+        graph_def.ParseFromString(f.read())
+    with tf.Graph().as_default() as graph:
+        tf.import_graph_def(graph_def, name='')
+        return graph
+
+def convert_frozen_graph_to_tflite(modelLoc):
+  converter = tf.lite.TFLiteConverter.from_saved_model((modelLoc / 'resnet.pb').as_posix())
+  converter.optimizations = [tf.lite.Optimize.DEFAULT]
   tf_lite_model = converter.convert()
-  open(tflite_path, 'wb').write(tf_lite_model)
+  open(modelLoc / 'resnet.tflite', 'wb').write(tf_lite_model)
 
   return None
-
 
 def convert_onnx_to_tf(onnx_path, tf_path):
   onnx_model = onnx.load(onnx_path.as_posix())  # load onnx model
