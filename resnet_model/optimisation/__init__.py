@@ -4,6 +4,7 @@ from torchvision import transforms
 from torchvision import datasets
 import numpy as np
 import scipy.stats
+import tensorflow as tf
 
 from pathlib import Path
 import collections
@@ -40,6 +41,28 @@ def load_data(data_dir, input_size, batch_size):
   device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
   return dataloaders_dict, device
+
+def load_tf_data(data_dir, input_size, batch_size):
+  val = load_data(data_dir, input_size, batch_size)[0]['val']
+  batches = []
+  labels_batch = []
+
+  for inputs, labels in val:
+    batches.append(inputs.numpy())
+    labels_batch.append(labels.numpy())
+
+  return batches, labels_batch
+
+def evaluate_tensorflow_model(model_loc, batches, labels_batch):
+  model = tf.saved_model.load(model_loc.as_posix())
+  infer = model.signatures['serving_default']
+  test = batches[0]
+  test = test[0]
+  test.shape = (1,3,224,224)
+  test = tf.constant(test)
+  infer(test)
+
+  return None
 
 def test_torch_accuracy(model, data_path):
   dataloaders_dict, device = load_data(data_path, 224, 32)
@@ -102,12 +125,9 @@ def prune_weights(model, model_path, data_path, k=0.25):
   #accuracies_wp.append(test_accuracy(model, testloader, criterion))
   return model
 
-if __name__ == '__main__':
-  import sys
-  import os
-  model_path = Path('models')
-  dataDir = Path('data')
 
-  model = resnet_model.load_model(False, model_path, dataDir)
-  print(test_torch_accuracy(model, dataDir))
-  prune_weights(model_path, dataDir, 0.25)
+if __name__ == '__main__':
+  from pathlib import Path
+  val = load_tf_data(Path('data'), 224, 32)
+  ins, labels = val
+  evaluate_tensorflow_model(Path('models') / 'resnet.pb', ins, labels)
