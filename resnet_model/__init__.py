@@ -16,7 +16,7 @@ def load_model(load, model_path, dataLoc):
 
   else:
     model = torchvision.models.resnet18(pretrained=False)
-    model.fc = torch.nn.Linear(mode.fc.in_features, 10, bias = True)
+    model.fc = torch.nn.Linear(model.fc.in_features, 10, bias = True)
     model.load_state_dict(torch.load((model_path / 'resnet.pth').as_posix()))
 
   return model
@@ -68,7 +68,7 @@ def load_pb(path_to_pb):
 
 def convert_frozen_graph_to_tflite(modelLoc):
   converter = tf.lite.TFLiteConverter.from_saved_model((modelLoc / 'resnet.pb').as_posix())
-  converter.optimizations = [tf.lite.Optimize.DEFAULT]
+  #converter.optimizations = [tf.lite.Optimize.DEFAULT]
   tf_lite_model = converter.convert()
   open(modelLoc / 'resnet.tflite', 'wb').write(tf_lite_model)
 

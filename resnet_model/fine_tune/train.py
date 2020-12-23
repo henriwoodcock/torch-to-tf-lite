@@ -5,6 +5,7 @@ from torchvision import transforms, datasets
 import torch.optim as optim
 import time
 import copy
+import os
 
 def set_parameter_requires_grad(model, feature_extracting):
     if feature_extracting:
@@ -38,7 +39,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25,
             dl_i = 0
             for inputs, labels in dataloaders[phase]:
                 dl_i += 1
-                print(dl_i)
+                #print(dl_i)
                 if dl_i == len(dataloaders[phase]) // 4:
                   print('epoch 25% through')
                 if dl_i == len(dataloaders[phase]) // 2:

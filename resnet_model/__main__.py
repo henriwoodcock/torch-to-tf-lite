@@ -17,7 +17,7 @@ def main(load, convert_torch, convert_onnx, convert_tflite, convert_tflite2):
   modelLoc = Path('models')
   dataLoc = Path('data')
   #load model from dl or locally
-  model = resnet_model.load_model(load, modelLoc)
+  model = resnet_model.load_model(load, modelLoc, dataLoc)
   #put in evaluate mode
   model.eval()
   # create an onnx model
