@@ -123,7 +123,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25,
 
     # load best model weights
     model.load_state_dict(best_model_wts)
-    return model, val_acc_history
+    return model, val_acc_history, best_acc
 
 def load_data(data_dir, input_size, batch_size):
   # Data augmentation and normalization for training

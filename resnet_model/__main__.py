@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import logging
 
 import click
 
@@ -12,12 +13,16 @@ os.environ['KMP_DUPLICATE_LIB_OK']='True'
 @click.option('--convert_torch', '-T', is_flag=True)
 @click.option('--convert_onnx', '-O', is_flag=True)
 @click.option('--convert_tflite', '-mu', is_flag = True)
-@click.option('--convert_tflite2', '-mu2', is_flag = True)
-def main(load, convert_torch, convert_onnx, convert_tflite, convert_tflite2):
+@click.option('--prune_weights', '-PW', is_flag = True)
+def main(load, convert_torch, convert_onnx, convert_tflite, prune_weights):
   modelLoc = Path('models')
   dataLoc = Path('data')
   #load model from dl or locally
-  model = resnet_model.load_model(load, modelLoc, dataLoc)
+  model, acc = resnet_model.load_model(load, modelLoc, dataLoc)
+  print('model accuracy = ', acc)
+  logging.info('accuracy on baseline model')
+  logging.info(accuracy.numpy())
+
   #put in evaluate mode
   model.eval()
   # create an onnx model
@@ -30,7 +35,16 @@ def main(load, convert_torch, convert_onnx, convert_tflite, convert_tflite2):
   if convert_tflite:
     resnet_model.convert_frozen_graph_to_tflite(modelLoc)
 
+  if prune_weights:
+    acc = resnet_model.prune_torch_weights(model, modelLoc, dataLoc, 0.25)
+    print('accuracy after pruning = ', acc.numpy())
+    logging.info('accuracy after pruning:')
+    logging.info(acc.numpy())
+
   return None
 
 if __name__ == '__main__':
+  import sys
+  import os
+  sys.argv = ['', '-PW']
   main()

@@ -6,6 +6,7 @@ from onnx_tf.backend import prepare
 import numpy as np
 import tensorflow as tf
 from . import fine_tune
+from . import optimisation
 
 def load_model(load, model_path, dataLoc):
   '''load the pytorch model ready to be converted.
@@ -20,7 +21,7 @@ def load_model(load, model_path, dataLoc):
   '''
   if load:
     model = torchvision.models.resnet18(pretrained=True)
-    model, _ = fine_tune.train.feature_extractor(model, dataLoc)
+    model, _, best_acc = fine_tune.train.feature_extractor(model, dataLoc)
     torch.save(model.state_dict(), model_path / 'resnet.pth')
 
   else:
@@ -28,7 +29,12 @@ def load_model(load, model_path, dataLoc):
     model.fc = torch.nn.Linear(model.fc.in_features, 10, bias = True)
     model.load_state_dict(torch.load((model_path / 'resnet.pth').as_posix()))
 
-  return model
+  if load:
+    accuracy = best_acc
+  else:
+    accuracy = optimisation.test_torch_accuracy(model, data_path)
+
+  return model, accuracy
 
 def create_rand_tens():
   '''create a random tensor using the torch.randn function
@@ -111,3 +117,9 @@ def convert_onnx_to_tf(onnx_path, tf_path):
   tf_rep.export_graph(tf_path.as_posix())
 
   return None
+
+def prune_torch_weights(model, model_path, data_path, k=0.25):
+  model = optimisation.prune_weights(model, model_path, data_path, 0.25)
+  accuracy = optimisation.test_torch_accuracy(model, data_path)
+
+  return accuracy
