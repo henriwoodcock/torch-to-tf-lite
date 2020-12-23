@@ -8,12 +8,33 @@ import copy
 import os
 
 def set_parameter_requires_grad(model, feature_extracting):
-    if feature_extracting:
-        for param in model.parameters():
-            param.requires_grad = False
+  '''set all parameters in the model to require grad = False
+
+  args:
+    - model: torch.nn.Module
+    - feature_extracting: bool
+  '''
+  if feature_extracting:
+    for param in model.parameters():
+      param.requires_grad = False
 
 def train_model(model, dataloaders, criterion, optimizer, num_epochs=25,
                 is_inception=False, device='cpu'):
+    '''train a torch model.
+
+    args:
+      - model: torch.nn.Module
+      - dataloaders: dict
+      - criterion: torch.nn.Module / torch.nn.modules.loss._Loss
+      - optimizer: torch.optim
+      - num_epochs: int
+      - is_inception: bool,
+      - device: str
+
+    return:
+      - model: nn.Module
+      - val_acc_history: list
+    '''
     since = time.time()
 
     val_acc_history = []
