@@ -5,15 +5,18 @@ import onnxruntime
 from onnx_tf.backend import prepare
 import numpy as np
 import tensorflow as tf
+from . import fine_tune
 
-def load_model(load, model_path):
+def load_model(load, model_path, dataLoc):
 
   if load:
     model = torchvision.models.resnet18(pretrained=True)
+    model, _ = fine_tune.train.feature_extractor(model, dataLoc)
     torch.save(model.state_dict(), model_path / 'resnet.pth')
 
   else:
     model = torchvision.models.resnet18(pretrained=False)
+    model.fc = torch.nn.Linear(mode.fc.in_features, 10, bias = True)
     model.load_state_dict(torch.load((model_path / 'resnet.pth').as_posix()))
 
   return model

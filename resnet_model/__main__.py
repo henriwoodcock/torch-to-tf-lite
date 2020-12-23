@@ -15,6 +15,7 @@ os.environ['KMP_DUPLICATE_LIB_OK']='True'
 @click.option('--convert_tflite2', '-mu2', is_flag = True)
 def main(load, convert_torch, convert_onnx, convert_tflite, convert_tflite2):
   modelLoc = Path('models')
+  dataLoc = Path('data')
   #load model from dl or locally
   model = resnet_model.load_model(load, modelLoc)
   #put in evaluate mode
