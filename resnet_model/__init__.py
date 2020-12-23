@@ -2,7 +2,9 @@ import torch
 import torchvision
 import onnx
 import onnxruntime
+from onnx_tf.backend import prepare
 import numpy as np
+import tensorflow as tf
 
 def load_model(load, model_path):
 
@@ -60,11 +62,20 @@ def convert_torch_to_onnx(model, onnx_path):
 
   return None
 
+def convert_frozen_graph_to_tflite(tf_path, tflite_path):
+  converter = tf.lite.TFLiteConverter.from_frozen_graph(tf_path.as_posix(),
+                                                        input_arrays=['input'],
+                                                        output_arrays=['output']
+                                                      )
+  tf_lite_model = converter.convert()
+  open(tflite_path, 'wb').write(tf_lite_model)
+
+  return None
 
 
+def convert_onnx_to_tf(onnx_path, tf_path):
+  onnx_model = onnx.load(onnx_path.as_posix())  # load onnx model
+  tf_rep = prepare(onnx_model)  # creating TensorflowRep object
+  tf_rep.export_graph(tf_path.as_posix())
 
-
-
-
-
-
+  return None
