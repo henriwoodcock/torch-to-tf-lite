@@ -13,7 +13,7 @@ os.environ['KMP_DUPLICATE_LIB_OK']='True'
 @click.option('--convert_torch', '-T', is_flag=True)
 @click.option('--convert_onnx', '-O', is_flag=True)
 @click.option('--convert_tflite', '-mu', is_flag = True)
-@click.option('--convert_keras', 'K', is_flag=True)
+@click.option('--convert_keras', '-K', is_flag=True)
 @click.option('--prune_weights', '-PW', is_flag = True)
 def main(load, convert_torch, convert_onnx, convert_tflite, convert_keras,
         prune_weights):
@@ -40,6 +40,8 @@ def main(load, convert_torch, convert_onnx, convert_tflite, convert_keras,
   if convert_keras:
     torch_to_tf_lite.convert_onnx_to_keras(modelLoc / 'resnet.onnx',
                                            modelLoc / 'keras')
+    torch_to_tf_lite.check_torch_vs_keras(modelLoc / 'resnet.pth',
+                                          modelLoc / 'keras')
 
   if prune_weights:
     acc = torch_to_tf_lite.prune_torch_weights(model, modelLoc, dataLoc, 0.25)
@@ -52,5 +54,5 @@ def main(load, convert_torch, convert_onnx, convert_tflite, convert_keras,
 if __name__ == '__main__':
   import sys
   import os
-  sys.argv = ['', '-PW']
+  sys.argv = ['', '-L','-T', '-O', '-K']
   main()

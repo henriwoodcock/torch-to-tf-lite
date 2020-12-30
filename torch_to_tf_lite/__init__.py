@@ -128,7 +128,7 @@ def convert_onnx_to_keras(onnx_path, keras_path):
 
   return None
 
-def check_torch_vs_keras(torch_path, keras_path, data):
+def check_torch_vs_keras(torch_path, keras_path):
   #load torch model
   model = torchvision.models.resnet18(pretrained=False)
   model.fc = torch.nn.Linear(model.fc.in_features, 10, bias = True)

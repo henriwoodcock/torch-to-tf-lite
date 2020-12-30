@@ -188,11 +188,11 @@ def feature_extractor(model_ft, dataLoc):
   criterion = nn.CrossEntropyLoss()
 
   # Train and evaluate
-  model_ft, hist = train_model(model_ft, dataloaders_dict, criterion,
-                               optimizer_ft, num_epochs=num_epochs,
-                              is_inception=False, device=device)
+  model_ft, hist, best_acc = train_model(model_ft, dataloaders_dict, criterion,
+                                        optimizer_ft, num_epochs=num_epochs,
+                                        is_inception=False, device=device)
 
-  return model_ft, hist
+  return model_ft, hist, best_acc
 
 if __name__ == '__main__':
   from pathlib import Path
