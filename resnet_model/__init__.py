@@ -3,6 +3,7 @@ import torchvision
 import onnx
 import onnxruntime
 from onnx_tf.backend import prepare
+import onnx2keras
 import numpy as np
 import tensorflow as tf
 from . import fine_tune
@@ -32,7 +33,7 @@ def load_model(load, model_path, dataLoc):
   if load:
     accuracy = best_acc
   else:
-    accuracy = optimisation.test_torch_accuracy(model, data_path)
+    accuracy = optimisation.test_torch_accuracy(model, dataLoc)
 
   return model, accuracy
 
@@ -74,6 +75,9 @@ def convert_torch_to_onnx(model, onnx_path):
     model=model,
     args=rand_tens,
     f=onnx_path / 'resnet.onnx',
+    verbose=True,
+    input_names=['input'],
+    output_names=['output']
   )
 
   onnx_model = onnx.load((onnx_path / 'resnet.onnx').as_posix())
@@ -117,6 +121,32 @@ def convert_onnx_to_tf(onnx_path, tf_path):
   tf_rep.export_graph(tf_path.as_posix())
 
   return None
+
+def convert_onnx_to_keras(onnx_path, keras_path):
+  onnx_model = onnx.load('resnet18.onnx')
+  k_model = onnx2keras.onnx_to_keras(onnx_model, ['input'])
+
+  return None
+
+def check_torch_vs_keras(torch_path, keras_path, data):
+  #load torch model
+  model = torchvision.models.resnet18(pretrained=False)
+  model.fc = torch.nn.Linear(model.fc.in_features, 10, bias = True)
+  model.load_state_dict(torch.load((model_path / 'resnet.pth').as_posix()))
+
+  # load keras model
+  tf.keras.models.load_model(keras_path)
+
+  # create a random tensor
+  input_np = np.random.uniform(0, 1, (1, 3, 224, 224))
+
+  # compare the two models
+  error = check_torch_keras_error(model, k_model, input_np)
+
+  print('Error between keras and torch: {0}'.format(error))  #  1e-6 :)
+
+  return None
+
 
 def prune_torch_weights(model, model_path, data_path, k=0.25):
   model = optimisation.prune_weights(model, model_path, data_path, 0.25)
