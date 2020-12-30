@@ -4,7 +4,7 @@ import logging
 
 import click
 
-import resnet_model
+import torch_to_tf_lite
 #temp
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
