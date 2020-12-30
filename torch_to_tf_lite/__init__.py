@@ -9,6 +9,17 @@ import tensorflow as tf
 from . import fine_tune
 from . import optimisation
 
+def load_torch(torch_loc):
+  '''load the pytorch model to be converted
+
+  args:
+    - torch_loc: pathlib.Path
+
+  returns:
+    - model: torch.nn.Module
+  '''
+  model =
+
 def load_model(load, model_path, dataLoc):
   '''load the pytorch model ready to be converted.
 

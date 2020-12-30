@@ -1,6 +1,7 @@
 from pathlib import Path
 import os
 import logging
+import sys
 
 import click
 
@@ -9,19 +10,51 @@ import torch_to_tf_lite
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 @click.command()
-@click.option('--load', '-L', is_flag=True)
-@click.option('--convert_torch', '-T', is_flag=True)
-@click.option('--convert_onnx', '-O', is_flag=True)
-@click.option('--convert_tflite', '-mu', is_flag = True)
-@click.option('--convert_keras', '-K', is_flag=True)
-@click.option('--prune_weights', '-PW', is_flag = True)
-def main(load, convert_torch, convert_onnx, convert_tflite, convert_keras,
-        prune_weights):
+@click.option('--torch_file', '-T', type=click.Path(exists=True), required=True)
+@click.option('--onnx_file', '-O', type=click.Path())
+@click.option('--keras_file', '-K', type=click.Path())
+@click.option('--tf_file', '-TF', type=click.Path())
+@click.option('--tflite_file', '-mu', type=click.Path(), required=True)
+@click.option('--tflite_settings', '-mu_config', multiple=True)
+@click.option('--prune_weights', '-P', type = float)
+def main(torch_file, onnx_file, keras_file, tf_file, tflite_file,
+        tflite_settings, prune_weights):
+  '''
+  args:
+    - torch_file: path. required
+    - onnx_file: path
+    - keras_file: path
+    - tf_file: path
+    - tflite_file: path
+    - tflite_settings: tuple
+    - prune_weights: float
+
+  Usage:
+  -------
+  - torch_file is required and is the location of the PyTorch file to be loaded.
+  - tflite_file is required and is the location for the tflite model to be
+  exported.
+
+  - if onnx_file is provided then an onnx file is exported and checked
+  - if keras_file is provided then a keras file is exported and checked
+  - if tf_file is provided then a tensorflow graph file is exported and checked
+  - if tflite_settings is provided these settings are used for the tflite
+    model export otherwise no optimisation settings are used
+  - if prune_weights is provided then the percentage provided is pruned.
+  '''
+  loc = Path()
+  if torch_file:
+    torch_loc = loc / torch_loc
+    torch_model = torch_to_tf_lite.load_torch(torch_loc)
+  else:
+    sys.exit(1)
+
+
   modelLoc = Path('models')
   dataLoc = Path('data')
   #load model from dl or locally
-  model, acc = torch_to_tf_lite.load_model(load, modelLoc, dataLoc)
-  print('model accuracy = ', acc)
+  model, accuracy = torch_to_tf_lite.load_model(load, modelLoc, dataLoc)
+  print('model accuracy = ', accuracy)
   logging.info('accuracy on baseline model')
   logging.info(accuracy.numpy())
 
