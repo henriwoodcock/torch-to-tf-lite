@@ -1,32 +1,23 @@
 from pathlib import Path
 import os
-import logging
 import sys
-
-import click
-
-import torch_to_tf_lite
 #temp
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
-@click.command()
-@click.option('--torch_file', '-T', type=click.Path(exists=True), required=True)
-@click.option('--onnx_file', '-O', type=click.Path())
-@click.option('--keras_file', '-K', type=click.Path())
-@click.option('--tf_file', '-TF', type=click.Path())
-@click.option('--tflite_file', '-mu', type=click.Path(), required=True)
-@click.option('--tflite_settings', '-mu_config', multiple=True)
-@click.option('--prune_weights', '-P', type = float)
-def main(torch_file, onnx_file, keras_file, tf_file, tflite_file,
-        tflite_settings, prune_weights):
+def torch_to_tflite(torch_model, tflite_file, input_shape, output_shape,
+                    tflite_settings=None, onnx_file=None, keras_file=None,
+                    tf_file=None, prune_weights=None):
   '''
   args:
-    - torch_file: path. required
-    - onnx_file: path
-    - keras_file: path
-    - tf_file: path
+    - torch_model: torch.nn.Module
     - tflite_file: path
-    - tflite_settings: tuple
+    - input_shape: tuple e.g. (3,224,224) (without the batch size so not
+                                          (1,3,224,224))
+    - output_shape: tuple
+    - tflite_settings: tuple (optional)
+    - onnx_file: path (optional)
+    - keras_file: path (optional)
+    - tf_file: path (optional)
     - prune_weights: float
 
   Usage:
@@ -42,7 +33,17 @@ def main(torch_file, onnx_file, keras_file, tf_file, tflite_file,
     model export otherwise no optimisation settings are used
   - if prune_weights is provided then the percentage provided is pruned.
   '''
-  loc = Path()
+
+  if not isinstance(torch_model, torch.nn.Module):
+    raise TypeError('torch_model is required to be a torch.nn.Module')
+  if not isinstance(tflite_file, pathlib.Path):
+    raise TypeError('tflite_file is require to be a pathlib.Path')
+
+  if not onnx_file: onnx_file = pathlib.Path('temp.onnx')
+  torch_to_tflite.convert_torch_to_onnx(torch_model, onnx_file, input_shape,
+                                        output_shape)
+
+
   if torch_file:
     torch_loc = loc / torch_loc
     torch_model = torch_to_tf_lite.load_torch(torch_loc)
