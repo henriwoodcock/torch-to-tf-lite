@@ -70,7 +70,7 @@ def to_numpy(tensor):
   '''
   return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
 
-def convert_torch_to_onnx(model, onnx_path, input_shape, output_shape):
+def convert_torch_to_onnx(model, onnx_path, input_shape):
   '''convert a torch model in an onnx model. This function will run
   onnx.checker.check_model and assert the output of both models from the same
   input are close through assertion
@@ -86,13 +86,13 @@ def convert_torch_to_onnx(model, onnx_path, input_shape, output_shape):
   torch.onnx.export(
     model=model,
     args=rand_tens,
-    f=onnx_path / 'resnet.onnx',
+    f=onnx_path,
     verbose=True,
     input_names=['input'],
     output_names=['output']
   )
 
-  onnx_model = onnx.load((onnx_path / 'resnet.onnx').as_posix())
+  onnx_model = onnx.load((onnx_path).as_posix())
   onnx.checker.check_model(onnx_model)
 
   ort_session = onnxruntime.InferenceSession((onnx_path / 'resnet.onnx').as_posix())
@@ -101,8 +101,8 @@ def convert_torch_to_onnx(model, onnx_path, input_shape, output_shape):
   # compare ONNX Runtime and PyTorch results
   np.testing.assert_allclose(to_numpy(torch_out), ort_outs[0], rtol=1e-03,
                               atol=1e-05)
-  print("Exported model has been tested with ONNXRuntime, and the result looks"\
-        " good!")
+  print('Model exported to onnx format.')
+  print('Exported model has been tested with ONNXRuntime and the results match')
 
   return None
 
@@ -134,26 +134,20 @@ def convert_onnx_to_tf(onnx_path, tf_path):
 
   return None
 
-def convert_onnx_to_keras(onnx_path, keras_path):
-  onnx_model = onnx.load('resnet18.onnx')
+def convert_onnx_to_keras(onnx_path, keras_path, torch_model, input_shape):
+  onnx_model = onnx.load(onnx_path.as_posix())
   k_model = onnx2keras.onnx_to_keras(onnx_model, ['input'])
+  if keras_path:
+    k_model.save(keras_path)
+    print('Keras model saved to ', keras_path.as_posix())
+  check_torch_vs_keras(torch_model, keras_model, input_shape)
 
-  return None
+  return k_model
 
-def check_torch_vs_keras(torch_path, keras_path):
-  #load torch model
-  model = torchvision.models.resnet18(pretrained=False)
-  model.fc = torch.nn.Linear(model.fc.in_features, 10, bias = True)
-  model.load_state_dict(torch.load((model_path / 'resnet.pth').as_posix()))
-
-  # load keras model
-  tf.keras.models.load_model(keras_path)
-
-  # create a random tensor
-  input_np = np.random.uniform(0, 1, (1, 3, 224, 224))
-
+def check_torch_vs_keras(torch_model, keras_model, input_shape):
+  rand_tens = to_numpy(create_rand_tens(input_shape))
   # compare the two models
-  error = check_torch_keras_error(model, k_model, input_np)
+  error = check_torch_keras_error(model, keras_model, rand_tens)
 
   print('Error between keras and torch: {0}'.format(error))  #  1e-6 :)
 

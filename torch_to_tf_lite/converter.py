@@ -40,8 +40,10 @@ def torch_to_tflite(torch_model, tflite_file, input_shape, output_shape,
     raise TypeError('tflite_file is require to be a pathlib.Path')
 
   if not onnx_file: onnx_file = pathlib.Path('temp.onnx')
+  #convert torch model to an onnx model
   torch_to_tflite.convert_torch_to_onnx(torch_model, onnx_file, input_shape,
                                         output_shape)
+  keras_model = torch_to_tflite.convert_onnx_to_keras(onnx_file, keras_file)
 
 
   if torch_file:
