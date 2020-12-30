@@ -6,19 +6,13 @@ from onnx_tf.backend import prepare
 import onnx2keras
 import numpy as np
 import tensorflow as tf
+
 from . import fine_tune
 from . import optimisation
 
-def load_torch(torch_loc):
-  '''load the pytorch model to be converted
+import os
 
-  args:
-    - torch_loc: pathlib.Path
-
-  returns:
-    - model: torch.nn.Module
-  '''
-  model =
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 def load_model(load, model_path, dataLoc):
   '''load the pytorch model ready to be converted.
@@ -48,7 +42,7 @@ def load_model(load, model_path, dataLoc):
 
   return model, accuracy
 
-def create_rand_tens():
+def create_rand_tens(input_shape):
   '''create a random tensor using the torch.randn function
 
   args:
@@ -56,7 +50,14 @@ def create_rand_tens():
   returns:
     - torch.tensor
   '''
-  return torch.randn(1, 3, 224, 224, requires_grad=True)
+  # add batch size of 1
+  tensor_shape = [1]
+  # extend to include the input shape
+  tensor_shape.extend(input_shape)
+  #convert to tuple
+  tensor_shape=tuple(tensor_shape)
+
+  return torch.randn(tensor_shape, requires_grad=True)
 
 def to_numpy(tensor):
   '''convert a torch tensor to a numpy array
@@ -69,7 +70,7 @@ def to_numpy(tensor):
   '''
   return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
 
-def convert_torch_to_onnx(model, onnx_path):
+def convert_torch_to_onnx(model, onnx_path, input_shape, output_shape):
   '''convert a torch model in an onnx model. This function will run
   onnx.checker.check_model and assert the output of both models from the same
   input are close through assertion
@@ -79,7 +80,7 @@ def convert_torch_to_onnx(model, onnx_path):
     - onnx_path: pathlib.Path
   '''
   #generate random tensor to use
-  rand_tens = torch.autograd.Variable(create_rand_tens())
+  rand_tens = torch.autograd.Variable(create_rand_tens(input_shape))
   #get torch model output
   torch_out = model(rand_tens)
   torch.onnx.export(
