@@ -44,6 +44,9 @@ def torch_to_tflite(torch_model, tflite_file, input_shape, output_shape,
   torch_to_tflite.convert_torch_to_onnx(torch_model, onnx_file, input_shape,
                                         output_shape)
   keras_model = torch_to_tflite.convert_onnx_to_keras(onnx_file, keras_file)
+  #if file name is temp it can now be deleted.
+  if onnx_file.head == 'temp':
+    onnx_file.unlink()
 
 
   if torch_file:
