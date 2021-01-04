@@ -134,7 +134,8 @@ def convert_onnx_to_tf(onnx_path, tf_path):
 
   return None
 
-def check_torch_vs_keras(torch_model, keras_model, input_shape):
+def check_torch_vs_keras(torch_model, keras_model, input_shape,
+                         change_ordering):
   # compare the two models
   # generate random numpy array
   rand_tens = to_numpy(create_rand_tens(input_shape))
@@ -143,22 +144,27 @@ def check_torch_vs_keras(torch_model, keras_model, input_shape):
   # output from torch model
   output = torch_model(input_var)
   pytorch_output = output.data.numpy()
-  #keras output needs to be transposed
-  keras_output = keras_model.predict(np.transpose(rand_tens, [0, 2, 3, 1]))
+  if change_ordering:
+    #keras output needs to be transposed (assume this only happens with images)
+    keras_output = keras_model.predict(np.transpose(rand_tens, [0, 2, 3, 1]))
+  else:
+    keras_output = keras_model.predict(rand_tens)
+
   error = np.max(pytorch_output - keras_output)
   print('error -- ', error)  # Around zero :)
   print('Error between keras and torch: {0}'.format(error))  #  1e-6 :)
 
   return None
 
-def convert_onnx_to_keras(onnx_path, keras_path, torch_model, input_shape, change_ordering):
+def convert_onnx_to_keras(onnx_path, keras_path, torch_model, input_shape,
+                          change_ordering):
   onnx_model = onnx.load(onnx_path.as_posix())
   k_model = onnx2keras.onnx_to_keras(onnx_model, ['input'], verbose=False,
                                     change_ordering=change_ordering)
   if keras_path:
     k_model.save(keras_path)
     print('Keras model saved to ', keras_path.as_posix())
-  check_torch_vs_keras(torch_model, k_model, input_shape)
+  check_torch_vs_keras(torch_model, k_model, input_shape, change_ordering)
 
   return k_model
 
