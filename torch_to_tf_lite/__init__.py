@@ -153,6 +153,26 @@ def check_torch_vs_keras(torch_model, keras_model, input_shape):
 
   return None
 
+def convert_keras_to_tflite(keras_model, optimisation, convert_type):
+  assert convert_type in ['DYNAMIC', 'INTEGER', 'FLOAT16']
+
+  converter = tf.lite.TFLiteConverter.from_keras_model(keras_model)
+  converter.optimizations = [optimisation]
+
+  if convert_type == 'INTEGER':
+    converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+    converter.inference_input_type = tf.int8  # or tf.uint8
+    converter.inference_output_type = tf.int8  # or tf.uint8
+
+  elif convert_type == 'FLOAT16':
+    converter.optimizations = [tf.lite.Optimize.DEFAULT]
+    converter.target_spec.supported_types = [tf.float16]
+
+  tflite_model  = converter.convert()
+
+  return tflite_model
+
+
 
 def prune_torch_weights(model, model_path, data_path, k=0.25):
   model = optimisation.prune_weights(model, model_path, data_path, 0.25)
