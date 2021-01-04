@@ -7,7 +7,6 @@ import torchvision
 import tensorflow as tf
 import numpy as np
 
-
 class basic_example_model(torch.nn.Module):
     def __init__(self):
         """A simple linear model with model(x) = ax + b
@@ -20,19 +19,18 @@ class basic_example_model(torch.nn.Module):
         return self.a*x + self.b
 
 if __name__ == '__main__':
-  # initiate model
+  #initiate model from above
   model = basic_example_model()
-  import os
-  import sys
-  os.chdir("examples/basic-example")
+  # save model
+  torch.save(model.state_dict(), Path('outputs/basic_model.pth'))
   #put the model into eval model
   model.eval()
   # create a path object for the tflite output
   tf_lite = Path('outputs/basic_model.tflite')
   # create a path object for the keras output
-  keras = Path('outputs/basic_model_keras')
-  input_shape = (1,)
-  output_shape = (1,)
+  keras = Path('outputs/basic_model_keras') #this is optional
+  #input shape and out shape
+  input_shape, output_shape = (1,), (1,)
   # run the converter
   torch_to_tf_lite.torch_to_tf_lite(torch_model=model, tflite_file=tf_lite,
                                    input_shape=input_shape,
@@ -69,3 +67,9 @@ if __name__ == '__main__':
   output_data = interpreter.get_tensor(output_details[0]['index'])
   error = torch_output - output_data
   print(f'Error from PyTorch to TfLite Conversion', error.max())
+
+  print('PyTorch model size =', Path('outputs/basic_model.pth').stat().st_size)
+  print('TfLite model size =', tf_lite.stat().st_size)
+  print('Difference =',
+        Path('outputs/basic_model.pth').stat().st_size - tf_lite.stat().st_size,
+        'bytes')
