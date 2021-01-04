@@ -5,6 +5,7 @@ from pathlib import Path #built in
 import torch #3rd party
 import torchvision
 import tensorflow as tf
+import numpy as np
 
 
 class basic_example_model(torch.nn.Module):
@@ -21,6 +22,9 @@ class basic_example_model(torch.nn.Module):
 if __name__ == '__main__':
   # initiate model
   model = basic_example_model()
+  import os
+  import sys
+  os.chdir("examples/basic-example")
   #put the model into eval model
   model.eval()
   # create a path object for the tflite output
@@ -43,15 +47,16 @@ if __name__ == '__main__':
   torch_tensor = torch_to_tf_lite.utils.create_rand_tens(input_shape)
   numpy_tensor = torch_to_tf_lite.utils.to_numpy(torch_tensor)
   #torch output
-  torch_output = model(torch_tensor)
+  with torch.no_grad():
+    torch_output = model(torch_tensor)
   torch_output = torch_output.data.numpy()
 
   keras_output = keras_model.predict(numpy_tensor)
   error = torch_output - keras_output
-  print(f'Error from PyTorch to Keras Conversion', error)
+  print(f'Error from PyTorch to Keras Conversion', error.max())
 
   # Load the TFLite model and allocate tensors.
-  interpreter = tf.lite.Interpreter(model_path=tf_lite)
+  interpreter = tf.lite.Interpreter(model_path=tf_lite.as_posix())
   interpreter.allocate_tensors()
   # Get input and output tensors.
   input_details = interpreter.get_input_details()
@@ -62,4 +67,5 @@ if __name__ == '__main__':
   # The function `get_tensor()` returns a copy of the tensor data.
   # Use `tensor()` in order to get a pointer to the tensor.
   output_data = interpreter.get_tensor(output_details[0]['index'])
-  print(output_data)
+  error = torch_output - output_data
+  print(f'Error from PyTorch to TfLite Conversion', error.max())
