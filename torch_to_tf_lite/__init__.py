@@ -1,2 +1,1 @@
-from .converter import torch_to_tflite
-
+from .converter import torch_to_tf_lite

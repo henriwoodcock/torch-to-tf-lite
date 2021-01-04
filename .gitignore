@@ -1,4 +1,5 @@
 .python-version
+torch_to_tf_lite.egg-info
 __pycache__/
 data/
 .vscode
