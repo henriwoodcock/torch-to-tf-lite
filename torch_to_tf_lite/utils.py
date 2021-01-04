@@ -168,11 +168,15 @@ def convert_onnx_to_keras(onnx_path, keras_path, torch_model, input_shape,
 
   return k_model
 
-def convert_keras_to_tflite(keras_model, optimisation, convert_type):
+def convert_keras_to_tflite(keras_model, optimisation, convert_type,
+                            representative_data=None):
   assert convert_type in ['DYNAMIC', 'INTEGER', 'FLOAT16']
 
   converter = tf.lite.TFLiteConverter.from_keras_model(keras_model)
   converter.optimizations = [optimisation]
+
+  if representative_data:
+    converter.representative_dataset = representative_data
 
   if convert_type == 'INTEGER':
     converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
