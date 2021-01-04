@@ -9,8 +9,9 @@ from . import utils
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 def torch_to_tf_lite(torch_model, tflite_file, input_shape, output_shape,
-                    optimizations=None, convert_type='DYNAMIC', onnx_file=None,
-                    keras_file=None, prune_weights=None, change_ordering=False):
+                    optimizations=None, convert_type='DYNAMIC',
+                    representative_data=None, onnx_file=None, keras_file=None,
+                    prune_weights=None, change_ordering=False):
   '''
   args:
     - torch_model: torch.nn.Module
@@ -62,7 +63,8 @@ def torch_to_tf_lite(torch_model, tflite_file, input_shape, output_shape,
   #convert keras to tf lite
   tflite_model = utils.convert_keras_to_tflite(keras_model,
                                                         optimizations,
-                                                        convert_type)
+                                                        convert_type,
+                                                        representative_data)
   # save tf lite model
   with open(tflite_file.as_posix(), 'wb') as f:
     f.write(tflite_model)
