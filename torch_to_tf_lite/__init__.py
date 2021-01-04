@@ -9,6 +9,7 @@ import tensorflow as tf
 
 from . import fine_tune
 from . import optimisation
+from .converter import torch_to_tflite
 
 import os
 
@@ -134,6 +135,15 @@ def convert_onnx_to_tf(onnx_path, tf_path):
 
   return None
 
+def check_torch_vs_keras(torch_model, keras_model, input_shape):
+  rand_tens = to_numpy(create_rand_tens(input_shape))
+  # compare the two models
+  error = check_torch_keras_error(model, keras_model, rand_tens)
+
+  print('Error between keras and torch: {0}'.format(error))  #  1e-6 :)
+
+  return None
+
 def convert_onnx_to_keras(onnx_path, keras_path, torch_model, input_shape):
   onnx_model = onnx.load(onnx_path.as_posix())
   k_model = onnx2keras.onnx_to_keras(onnx_model, ['input'])
@@ -143,15 +153,6 @@ def convert_onnx_to_keras(onnx_path, keras_path, torch_model, input_shape):
   check_torch_vs_keras(torch_model, keras_model, input_shape)
 
   return k_model
-
-def check_torch_vs_keras(torch_model, keras_model, input_shape):
-  rand_tens = to_numpy(create_rand_tens(input_shape))
-  # compare the two models
-  error = check_torch_keras_error(model, keras_model, rand_tens)
-
-  print('Error between keras and torch: {0}'.format(error))  #  1e-6 :)
-
-  return None
 
 def convert_keras_to_tflite(keras_model, optimisation, convert_type):
   assert convert_type in ['DYNAMIC', 'INTEGER', 'FLOAT16']
@@ -171,8 +172,6 @@ def convert_keras_to_tflite(keras_model, optimisation, convert_type):
   tflite_model  = converter.convert()
 
   return tflite_model
-
-
 
 def prune_torch_weights(model, model_path, data_path, k=0.25):
   model = optimisation.prune_weights(model, model_path, data_path, 0.25)
