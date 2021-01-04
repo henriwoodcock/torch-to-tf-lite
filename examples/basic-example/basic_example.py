@@ -1,8 +1,11 @@
-import torch_to_tf_lite
-import torch
+import torch_to_tf_lite #package
+
+from pathlib import Path #built in
+
+import torch #3rd party
 import torchvision
-from pathlib import Path
 import tensorflow as tf
+
 
 class basic_example_model(torch.nn.Module):
     def __init__(self):
@@ -19,15 +22,15 @@ if __name__ == '__main__':
   # initiate model
   model = basic_example_model()
   #put the model into eval model
-  model.eval()ß
+  model.eval()
   # create a path object for the tflite output
   tf_lite = Path('outputs/basic_model.tflite')
   # create a path object for the keras output
   keras = Path('outputs/basic_model_keras')
-  input_shape = (1)
-  output_shape = (1)
+  input_shape = (1,)
+  output_shape = (1,)
   # run the converter
-  torch_to_tf_lite.torch_to_tflite(torch_model=model, tflite_file=tf_lite,
+  torch_to_tf_lite.torch_to_tf_lite(torch_model=model, tflite_file=tf_lite,
                                    input_shape=input_shape,
                                    output_shape=output_shape, keras_file=keras,
                                    change_ordering=False)
