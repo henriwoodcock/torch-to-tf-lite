@@ -3,7 +3,6 @@ import torch_to_tf_lite #package
 from pathlib import Path #built in
 
 import torch #3rd party
-import torchvision
 import tensorflow as tf
 import numpy as np
 
