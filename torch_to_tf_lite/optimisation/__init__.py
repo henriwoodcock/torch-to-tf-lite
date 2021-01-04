@@ -79,7 +79,7 @@ def test_torch_accuracy(model, data_path):
 
   return accuracy
 
-def prune_weights(model, model_path, data_path, k=0.25):
+def prune_weights(model, k=0.25):
   '''k = prune_percentage'''
   # Get all the weights
   weights = model.state_dict()
@@ -118,9 +118,7 @@ def prune_weights(model, model_path, data_path, k=0.25):
     new_state_dict[l] = pw
   #model.state_dict = new_state_dict
   k_num = int(k*100)
-  model_name = f'resnet_{k_num}_perc_weights.pth'
   model.load_state_dict(new_state_dict)
-  torch.save(model.state_dict(), model_path / model_name)
   # append the test accuracy to accuracies_wp
   #accuracies_wp.append(test_accuracy(model, testloader, criterion))
   return model
