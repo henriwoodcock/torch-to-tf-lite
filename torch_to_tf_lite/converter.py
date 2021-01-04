@@ -1,6 +1,8 @@
-from pathlib import Path
+import pathlib
 import os
 import sys
+
+import torch
 
 from . import utils
 #temp
@@ -44,15 +46,15 @@ def torch_to_tflite(torch_model, tflite_file, input_shape, output_shape,
 
   if prune_weights:
     print('Pruning weights in PyTorch before conversion.')
-    model = utils.prune_torch_weights(model, prune_weights)
+    torch_model = utils.prune_torch_weights(torch_model, prune_weights)
 
   if not onnx_file: onnx_file = pathlib.Path('temp.onnx')
   #convert torch model to an onnx model
-  utils.convert_torch_to_onnx(torch_model, onnx_file, input_shape,
-                                        output_shape)
-  keras_model = utils.convert_onnx_to_keras(onnx_file, keras_file)
+  utils.convert_torch_to_onnx(torch_model, onnx_file, input_shape)
+  keras_model = utils.convert_onnx_to_keras(onnx_file, keras_file, torch_model,
+                                            input_shape)
   #if file name is temp it can now be deleted.
-  if onnx_file.head == 'temp':
+  if onnx_file.stem == 'temp':
     onnx_file.unlink()
 
   # add weight clustering here
@@ -78,3 +80,9 @@ if __name__ == '__main__':
   output_shape = (1, 1000)
 
   torch_to_tflite(model, tf_lite, input_shape, output_shape)
+
+'''
+import torch_to_tf_lite;import torch, torchvision;from pathlib import Path
+model = torchvision.models.resnet18(pretrained=True);tf_lite = Path('tf_lite_model.tflite');input_shape = (3, 224, 224);output_shape = (1, 1000)
+torch_to_tf_lite.torch_to_tflite(model, tf_lite, input_shape, output_shape)
+'''

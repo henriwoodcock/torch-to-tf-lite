@@ -85,7 +85,7 @@ def convert_torch_to_onnx(model, onnx_path, input_shape):
   torch_out = model(rand_tens)
   torch.onnx.export(
     model=model,
-    args=rand_tens,
+    args=(rand_tens),
     f=onnx_path,
     verbose=True,
     input_names=['input'],
@@ -95,7 +95,7 @@ def convert_torch_to_onnx(model, onnx_path, input_shape):
   onnx_model = onnx.load((onnx_path).as_posix())
   onnx.checker.check_model(onnx_model)
 
-  ort_session = onnxruntime.InferenceSession((onnx_path / 'resnet.onnx').as_posix())
+  ort_session = onnxruntime.InferenceSession(onnx_path.as_posix())
   ort_inputs = {ort_session.get_inputs()[0].name: to_numpy(rand_tens)}
   ort_outs = ort_session.run(None, ort_inputs)
   # compare ONNX Runtime and PyTorch results
@@ -135,21 +135,29 @@ def convert_onnx_to_tf(onnx_path, tf_path):
   return None
 
 def check_torch_vs_keras(torch_model, keras_model, input_shape):
-  rand_tens = to_numpy(create_rand_tens(input_shape))
   # compare the two models
-  error = check_torch_keras_error(model, keras_model, rand_tens)
-
+  # generate random numpy array
+  rand_tens = to_numpy(create_rand_tens(input_shape))
+  # create torch variable
+  input_var = torch.autograd.Variable(torch.FloatTensor(rand_tens))
+  # output from torch model
+  output = torch_model(input_var)
+  pytorch_output = output.data.numpy()
+  #keras output needs to be transposed
+  keras_output = keras_model.predict(np.transpose(rand_tens, [0, 2, 3, 1]))
+  error = np.max(pytorch_output - keras_output)
+  print('error -- ', error)  # Around zero :)
   print('Error between keras and torch: {0}'.format(error))  #  1e-6 :)
 
   return None
 
 def convert_onnx_to_keras(onnx_path, keras_path, torch_model, input_shape):
   onnx_model = onnx.load(onnx_path.as_posix())
-  k_model = onnx2keras.onnx_to_keras(onnx_model, ['input'])
+  k_model = onnx2keras.onnx_to_keras(onnx_model, ['input'], verbose=False, change_ordering=True)
   if keras_path:
     k_model.save(keras_path)
     print('Keras model saved to ', keras_path.as_posix())
-  check_torch_vs_keras(torch_model, keras_model, input_shape)
+  check_torch_vs_keras(torch_model, k_model, input_shape)
 
   return k_model
 
