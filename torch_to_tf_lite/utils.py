@@ -151,9 +151,10 @@ def check_torch_vs_keras(torch_model, keras_model, input_shape):
 
   return None
 
-def convert_onnx_to_keras(onnx_path, keras_path, torch_model, input_shape):
+def convert_onnx_to_keras(onnx_path, keras_path, torch_model, input_shape, change_ordering):
   onnx_model = onnx.load(onnx_path.as_posix())
-  k_model = onnx2keras.onnx_to_keras(onnx_model, ['input'], verbose=False, change_ordering=True)
+  k_model = onnx2keras.onnx_to_keras(onnx_model, ['input'], verbose=False,
+                                    change_ordering=change_ordering)
   if keras_path:
     k_model.save(keras_path)
     print('Keras model saved to ', keras_path.as_posix())

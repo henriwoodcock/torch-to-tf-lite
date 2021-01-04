@@ -10,7 +10,7 @@ os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 def torch_to_tflite(torch_model, tflite_file, input_shape, output_shape,
                     optimizations=None, convert_type='DYNAMIC', onnx_file=None,
-                    keras_file=None, prune_weights=None):
+                    keras_file=None, prune_weights=None, change_ordering=True):
   '''
   args:
     - torch_model: torch.nn.Module
@@ -52,7 +52,7 @@ def torch_to_tflite(torch_model, tflite_file, input_shape, output_shape,
   #convert torch model to an onnx model
   utils.convert_torch_to_onnx(torch_model, onnx_file, input_shape)
   keras_model = utils.convert_onnx_to_keras(onnx_file, keras_file, torch_model,
-                                            input_shape)
+                                            input_shape, change_ordering)
   #if file name is temp it can now be deleted.
   if onnx_file.stem == 'temp':
     onnx_file.unlink()
