@@ -151,7 +151,7 @@ def check_torch_vs_keras(torch_model, keras_model, input_shape,
     keras_output = keras_model.predict(rand_tens)
 
   error = np.max(pytorch_output - keras_output)
-  print('error -- ', error)  # Around zero :)
+  #print('error -- ', error)  # Around zero :)
   print('Error between keras and torch: {0}'.format(error))  #  1e-6 :)
 
   return None
