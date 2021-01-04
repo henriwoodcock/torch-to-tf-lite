@@ -8,7 +8,7 @@ from . import utils
 #temp
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
-def torch_to_tflite(torch_model, tflite_file, input_shape, output_shape,
+def torch_to_tf_lite(torch_model, tflite_file, input_shape, output_shape,
                     optimizations=None, convert_type='DYNAMIC', onnx_file=None,
                     keras_file=None, prune_weights=None, change_ordering=True):
   '''
