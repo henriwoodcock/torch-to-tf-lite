@@ -147,6 +147,12 @@ images from Torch format to Tensorflow format. (Currently only works for
 There are several examples available in the examples folder and more to be
 added. Go to them [here](examples).
 
+## License
+This project is licensed under the MIT License. More information
+[here](LICENSE).
+
+## _
+
 #### Quick fix to an issue
 
 ```
