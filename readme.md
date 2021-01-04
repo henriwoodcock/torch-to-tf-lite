@@ -2,6 +2,13 @@
 
 PyTorch to Tensorflow Lite model converter.
 
+## Contents
+- [Installation](#installation)
+- [Usage](#usage)
+    - [Using Image Data](#using-image-data)
+- [API Reference](#api-reference)
+- [Examples](#examples)
+
 ## Installation
 
 To install first clone the GitHub repository.
@@ -134,6 +141,11 @@ model.
 - `change_ordering`: (`default=False`). Change to `True` to change shape of
 images from Torch format to Tensorflow format. (Currently only works for
 `3x224x224` images).
+
+## Examples
+
+There are several examples available in the examples folder and more to be
+added. Go to them [here](examples).
 
 #### Quick fix to an issue
 
