@@ -2,6 +2,7 @@ from pathlib import Path
 import os
 import sys
 
+from . import utils
 #temp
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
@@ -34,7 +35,7 @@ def torch_to_tflite(torch_model, tflite_file, input_shape, output_shape,
   - if prune_weights is provided then the percentage provided is pruned.
   '''
   #put torch model in eval mode
-  torch_to_tflite.eval()
+  torch_model.eval()
 
   if not isinstance(torch_model, torch.nn.Module):
     raise TypeError('torch_model is required to be a torch.nn.Module')
@@ -43,13 +44,13 @@ def torch_to_tflite(torch_model, tflite_file, input_shape, output_shape,
 
   if prune_weights:
     print('Pruning weights in PyTorch before conversion.')
-    model = torch_to_tf_lite.prune_torch_weights(model, prune_weights)
+    model = utils.prune_torch_weights(model, prune_weights)
 
   if not onnx_file: onnx_file = pathlib.Path('temp.onnx')
   #convert torch model to an onnx model
-  torch_to_tflite.convert_torch_to_onnx(torch_model, onnx_file, input_shape,
+  utils.convert_torch_to_onnx(torch_model, onnx_file, input_shape,
                                         output_shape)
-  keras_model = torch_to_tflite.convert_onnx_to_keras(onnx_file, keras_file)
+  keras_model = utils.convert_onnx_to_keras(onnx_file, keras_file)
   #if file name is temp it can now be deleted.
   if onnx_file.head == 'temp':
     onnx_file.unlink()
@@ -57,7 +58,7 @@ def torch_to_tflite(torch_model, tflite_file, input_shape, output_shape,
   # add weight clustering here
 
   #convert keras to tf lite
-  tflite_model = torch_to_tflite.convert_keras_to_tflite(keras_model,
+  tflite_model = utils.convert_keras_to_tflite(keras_model,
                                                         optimizations,
                                                         convert_type)
   # save tf lite model
@@ -65,3 +66,15 @@ def torch_to_tflite(torch_model, tflite_file, input_shape, output_shape,
     f.write(tflite_model)
 
   return None
+
+if __name__ == '__main__':
+  import torch
+  import torchvision
+  from pathlib import Path
+
+  model = torchvision.models.resnet18(pretrained=True)
+  tf_lite = Path('tf_lite_model.tflite')
+  input_shape = (3, 224, 224)
+  output_shape = (1, 1000)
+
+  torch_to_tflite(model, tf_lite, input_shape, output_shape)
