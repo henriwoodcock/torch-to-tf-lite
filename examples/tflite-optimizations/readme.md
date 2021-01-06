@@ -7,6 +7,11 @@ converter however this is to show the ones available in tf lite.
 The script goes through the optimizations explained in
 [https://www.tensorflow.org/lite/performance/model_optimization](https://www.tensorflow.org/lite/performance/model_optimization)
 
+## Contents
+- [Setup](#setup)
+- [Usage](#usage)
+    - [Ouputs](#outputs)
+- [Explanation of Code](#explanation-of-code)
 
 ## Setup
 
